@@ -79,27 +79,27 @@ pub fn part_2(input: String) -> String {
       let #(direction, steps) = val
       let #(dial, count) = acc
 
-      let #(new_dial, zero_crossings) = case direction, dial == 0 {
-        "L", True -> {
+      let #(new_dial, zero_crossings) = case direction {
+        "L" -> {
           let new_dial = dial - steps
-          let assert Ok(zero_crossings) = int.floor_divide(-new_dial, 100)
+
+          let start = case dial {
+            0 -> 0
+            _ -> 100
+          }
+
+          let assert Ok(zero_crossings) =
+            int.floor_divide(start - new_dial, 100)
 
           #(new_dial, zero_crossings)
         }
-        "L", False -> {
-          let new_dial = dial - steps
-          let assert Ok(zero_crossings) = int.floor_divide(-new_dial, 100)
-          let zero_crossings = zero_crossings + 1
-
-          #(new_dial, zero_crossings)
-        }
-        "R", _ -> {
+        "R" -> {
           let new_dial = dial + steps
           let assert Ok(zero_crossings) = int.floor_divide(new_dial, 100)
 
           #(new_dial, zero_crossings)
         }
-        _, _ -> {
+        _ -> {
           panic as "unknown direction"
         }
       }
