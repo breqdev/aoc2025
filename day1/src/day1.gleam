@@ -82,19 +82,20 @@ pub fn part_2(input: String) -> String {
       let #(new_dial, zero_crossings) = case direction, dial == 0 {
         "L", True -> {
           let new_dial = dial - steps
-          let assert Ok(zero_crossings) = int.floor_divide(new_dial + 1, -100)
+          let assert Ok(zero_crossings) = int.floor_divide(-new_dial, 100)
 
           #(new_dial, zero_crossings)
         }
         "L", False -> {
           let new_dial = dial - steps
-          let assert Ok(zero_crossings) = int.floor_divide(new_dial - 99, -100)
+          let assert Ok(zero_crossings) = int.floor_divide(-new_dial, 100)
+          let zero_crossings = zero_crossings + 1
 
           #(new_dial, zero_crossings)
         }
         "R", _ -> {
           let new_dial = dial + steps
-          let assert Ok(zero_crossings) = int.floor_divide(new_dial - 1, 100)
+          let assert Ok(zero_crossings) = int.floor_divide(new_dial, 100)
 
           #(new_dial, zero_crossings)
         }
@@ -105,14 +106,7 @@ pub fn part_2(input: String) -> String {
 
       let assert Ok(new_dial) = int.modulo(new_dial, 100)
 
-      let count =
-        zero_crossings
-        + case new_dial {
-          0 -> count + 1
-          _ -> count
-        }
-
-      #(new_dial, count)
+      #(new_dial, count + zero_crossings)
     })
 
   let #(_dial, count) = result
