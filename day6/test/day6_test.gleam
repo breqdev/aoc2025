@@ -17,7 +17,6 @@ pub fn part1_test() {
   assert result == "4277556"
 }
 
-
 pub fn part2_test() {
   let result =
     day6.part_2(
