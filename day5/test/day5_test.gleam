@@ -1,6 +1,7 @@
 import day5
 import gleam/int
 import gleam/list
+import gleam/set
 import gleeunit
 
 pub fn main() -> Nil {
@@ -19,6 +20,7 @@ pub fn simplify_ranges_test() {
 
   let result =
     day5.simplify_ranges(example_ranges)
+    |> set.to_list
     |> list.sort(fn(a, b) {
       let #(a, _) = a
       let #(b, _) = b
