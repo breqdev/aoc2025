@@ -4,6 +4,7 @@ import gleam/list
 import gleam/string
 import gleam/io
 import simplifile.{read}
+import tote/bag
 
 fn parse_grid(input: String) -> List(String) {
   input |> string.split("\n") |> list.filter(fn(line) {!string.is_empty(line)})
@@ -58,24 +59,32 @@ pub fn part_2(input: String) -> String {
     }
   })
 
-  let beams = [start_x]
+  let beams = bag.from_list([start_x])
 
   let #(_beams, count) = grid |> list.fold(#(beams, 1), fn(acc, row) {
     let #(beams, count) = acc
 
-    beams |> list.map(fn(beam) {
+    beams |> bag.to_list |> list.map(fn(bag) {
       // this beam might become one or two beams
+      let #(beam, qty) = bag
 
       case string.slice(row, beam, 1) {
-        "." | "S" -> #([beam], 0)
-        "^" -> #([beam - 1, beam + 1], 1)
+        "." | "S" -> {
+          let result = bag.new() |> bag.update(beam, fn(_) {qty})
+          #(result, 0)
+        }
+        "^" -> {
+          let result = bag.new() |> bag.update(beam - 1, fn(_) {qty}) |> bag.update(beam + 1, fn(_){qty})
+
+          #(result, qty)
+        }
         _ -> panic
       }
-    }) |> list.fold(#([], count), fn(acc, new) {
+    }) |> list.fold(#(bag.new(), count), fn(acc, new) {
       let #(beams, count) = acc
       let #(new_beams, new_count) = new
 
-      #(list.append(beams, new_beams), count + new_count)
+      #(bag.merge(beams, new_beams), count + new_count)
     })
   })
 
