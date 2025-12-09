@@ -31,20 +31,12 @@ fn reverse(pair: Pair) -> Pair {
   #(second, first)
 }
 
-fn closest_pair(boxes: List(Point), connections: List(Pair)) -> Pair {
-  let assert Ok(result) =
-    boxes
+fn closest_pairs(boxes: List(Point)) -> List(Pair) {
+  boxes
     |> list.combination_pairs
-    |> list.filter(fn(pair) {
-      !list.contains(connections, pair)
-      && !list.contains(connections, reverse(pair))
+    |> list.sort(fn(pair1, pair2) {
+      float.compare(distance(pair1), distance(pair2))
     })
-    |> list.max(fn(pair1, pair2) {
-      // intentionally swapped because there is no list.min
-      float.compare(distance(pair2), distance(pair1))
-    })
-
-  result
 }
 
 fn dfs(connections: List(Pair), start: Point, visited: Set(Point)) -> Set(Point) {
@@ -120,13 +112,8 @@ pub fn part_1(input: String, n: Int) -> String {
 
   echo "finding connections"
 
-  let connections =
-    list.range(1, n)
-    |> list.fold([], fn(connections, _idx) {
-      let pair = closest_pair(boxes, connections)
-
-      list.prepend(connections, pair)
-    })
+  let connections = closest_pairs(boxes)
+  let connections = list.take(connections, n)
 
   echo "searching for components"
 
