@@ -132,18 +132,33 @@ pub fn part_1(input: String, n: Int) -> String {
   largest |> list.fold(1, int.multiply) |> int.to_string
 }
 
-fn do_part_2(boxes: List(Point), connections_made: List(Pair), connections_upcoming: List(Pair)) -> Pair {
+fn do_part_2(boxes: List(Point), connections_made: List(Pair), connections_upcoming: List(Pair), groups: Set(Set(Point))) -> Pair {
   // do our connection!
   let assert Ok(new_connection) = list.first(connections_upcoming)
   let assert Ok(connections_upcoming) = list.rest(connections_upcoming)
   let connections_made = list.prepend(connections_made, new_connection)
 
-  let components = find_components(boxes, connections_made, set.new())
+  // merge the groups represented by the two points in new_connection
 
-  case set.size(components) {
+  let #(first, second) = new_connection
+  let assert Ok(first_group) = groups |> set.filter(fn(group) {
+      set.contains(group, first)
+  }) |> set.to_list |> list.first
+
+  let assert Ok(second_group) = groups |> set.filter(fn(group) {
+    set.contains(group, second)
+  }) |> set.to_list |> list.first
+
+  let updated_group = set.union(first_group, second_group)
+
+  let groups = groups |> set.filter(fn(group) {
+    group != first_group && group != second_group
+  }) |> set.insert(updated_group)
+
+  case set.size(groups) {
     0 -> panic
     1 -> new_connection
-    _ -> do_part_2(boxes, connections_made, connections_upcoming)
+    _ -> do_part_2(boxes, connections_made, connections_upcoming, groups)
   }
 }
 
@@ -157,7 +172,10 @@ pub fn part_2(input: String) -> String {
   let connections = closest_pairs(boxes)
 
   echo "making connections"
-  let final_pair = do_part_2(boxes, list.new(), connections)
+
+  let groups = boxes |> list.map(fn(point) {set.new() |> set.insert(point)}) |> set.from_list
+
+  let final_pair = do_part_2(boxes, list.new(), connections, groups)
 
   echo "done!"
 
