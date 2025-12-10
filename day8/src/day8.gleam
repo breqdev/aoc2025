@@ -26,17 +26,12 @@ fn distance(pair: Pair) -> Float {
   result
 }
 
-fn reverse(pair: Pair) -> Pair {
-  let #(first, second) = pair
-  #(second, first)
-}
-
 fn closest_pairs(boxes: List(Point)) -> List(Pair) {
   boxes
-    |> list.combination_pairs
-    |> list.sort(fn(pair1, pair2) {
-      float.compare(distance(pair1), distance(pair2))
-    })
+  |> list.combination_pairs
+  |> list.sort(fn(pair1, pair2) {
+    float.compare(distance(pair1), distance(pair2))
+  })
 }
 
 fn dfs(connections: List(Pair), start: Point, visited: Set(Point)) -> Set(Point) {
@@ -90,25 +85,28 @@ fn find_components(
   }
 }
 
+fn parse_boxes(input: String) -> List(Point) {
+  input
+  |> string.split("\n")
+  |> list.filter(fn(line) { !string.is_empty(line) })
+  |> list.map(fn(line) { string.split(line, ",") })
+  |> list.map(fn(line) {
+    line
+    |> list.map(fn(coordinate) {
+      let assert Ok(result) = int.parse(coordinate)
+      result
+    })
+  })
+  |> list.map(fn(line) {
+    let assert [x, y, z] = line
+    #(x, y, z)
+  })
+}
+
 pub fn part_1(input: String, n: Int) -> String {
   echo "parsing boxes"
 
-  let boxes =
-    input
-    |> string.split("\n")
-    |> list.filter(fn(line) { !string.is_empty(line) })
-    |> list.map(fn(line) { string.split(line, ",") })
-    |> list.map(fn(line) {
-      line
-      |> list.map(fn(coordinate) {
-        let assert Ok(result) = int.parse(coordinate)
-        result
-      })
-    })
-    |> list.map(fn(line) {
-      let assert [x, y, z] = line
-      #(x, y, z)
-    })
+  let boxes = parse_boxes(input)
 
   echo "finding connections"
 
@@ -134,9 +132,46 @@ pub fn part_1(input: String, n: Int) -> String {
   largest |> list.fold(1, int.multiply) |> int.to_string
 }
 
+fn do_part_2(boxes: List(Point), connections_made: List(Pair), connections_upcoming: List(Pair)) -> Pair {
+  // do our connection!
+  let assert Ok(new_connection) = list.first(connections_upcoming)
+  let assert Ok(connections_upcoming) = list.rest(connections_upcoming)
+  let connections_made = list.prepend(connections_made, new_connection)
+
+  let components = find_components(boxes, connections_made, set.new())
+
+  case set.size(components) {
+    0 -> panic
+    1 -> new_connection
+    _ -> do_part_2(boxes, connections_made, connections_upcoming)
+  }
+}
+
+pub fn part_2(input: String) -> String {
+  echo "parsing boxes"
+
+  let boxes = parse_boxes(input)
+
+  echo "finding connections"
+
+  let connections = closest_pairs(boxes)
+
+  echo "making connections"
+  let final_pair = do_part_2(boxes, list.new(), connections)
+
+  echo "done!"
+
+  let #(first, second) = final_pair
+  let #(x1, _y1, _z1) = first
+  let #(x2, _y2, _z2) = second
+
+  int.to_string(x1 * x2)
+}
+
 pub fn main() -> Nil {
   let input = read(from: "input.txt")
   let assert Ok(input) = input
-  let result = part_1(input, 1000)
+  // let result = part_1(input, 1000)
+  let result = part_2(input)
   io.println(result)
 }
